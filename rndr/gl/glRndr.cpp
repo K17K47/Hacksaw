@@ -6,13 +6,14 @@
  */
 
 #include <rndr/gl/glRndr.h>
+#include <hserr.h>
 #include <iostream>
 
 namespace Rndr {
 	int glRndr::glInit(){
-		std::cout<<"glRndr::glInit(): GLFW Init\n";
+		printErr("glRndr::glInit()","GLFW Init");
 		if(!glfwInit()){
-			std::cout<<"glRndr::glInit(): GLFW Init failed!\n";
+			printErr("glRndr::glInit()","GLFW Init failed!");
 			return -1;
 		}
 
@@ -25,18 +26,23 @@ namespace Rndr {
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 		window=glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-		std::cout<<glfwGetTime()<<" -> glRndr::glInit(): Creating window...\n";
+		printErr("glRndr::glInit()","Creating window...");
 		if(!window){
 			glfwTerminate();
-			std::cout<<"glRndr::glInit(): GLFW failed to create window\n";
+			printErr("glRndr::glInit()","GLFW failed to create window");
 			return -1;
 		}
 
 		glfwMakeContextCurrent(window);
 
-		std::cout<<glfwGetTime()<<" -> glRndr::glInit(): GLEW Init\n";
+		printErr("glRndr::glInit()","Video cards OpenGL implementation found:");
+		printErr("glRndr::glInit()","Vendor: " + std::string(reinterpret_cast<const char*>(glGetString(GL_VENDOR))));
+		printErr("glRndr::glInit()","Renderer: " + std::string(reinterpret_cast<const char*>(glGetString(GL_RENDERER))));
+		printErr("glRndr::glInit()","Version: " + std::string(reinterpret_cast<const char*>(glGetString(GL_VERSION))));
+
+		printErr("glRndr::glInit()","GLEW Init");
 		if(glewInit() != GLEW_OK){
-			std::cout<<"glRndr::glInit(): GLEW Init failed!\n";
+			printErr("glRndr::glInit()","GLEW Init failed!");
 			return -1;
 		}
 
@@ -44,7 +50,7 @@ namespace Rndr {
 	}
 
 	void glRndr::glfwErrCB(int error, const char* errMsg){
-		std::cout<<glfwGetTime()<<" -> glRndr::glfwErrCB():"<<errMsg<<"\n";
+		printErr("glRndr::glfwErrCB()",errMsg);
 	}
 
 } /* namespace phys */

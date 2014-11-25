@@ -8,42 +8,38 @@
 #include <iostream>
 #include <vector>
 #include "CLinit.h"
+#include <hserr.h>
 
 int CLcntxt::init(void){
-	std::cout<<"CLcntxt::init(): Initializing OpenCL...\n";
-	std::cout<<"\n";
+	printErr("CLcntxt::init()","Initializing OpenCL...");
 
 	std::vector<cl::Platform> platforms;
 	if (cl::Platform::get(&platforms)!=CL_SUCCESS){
-		std::cout<<"CLcntxt::init(): No OpenCL platforms!\n";
+		printErr("CLcntxt::init()","No OpenCL platforms!");
 		return 1;
 	}
 
-	std::cout<<"CLcntxt::init(): OpenCL Platforms found:\n";
+	printErr("CLcntxt::init()","OpenCL Platforms found:");
 	for(std::vector<cl::Platform>::iterator it = platforms.begin(); it !=platforms.end(); it++){
 		std::cout<<it->getInfo<CL_PLATFORM_NAME>()<<"\n";
 	}
-	std::cout<<"\n";
 
 	CLcntxt::def_platform=platforms[0];
-	std::cout<<"CLcntxt::init(): Using OpenCL platform "<<CLcntxt::def_platform.getInfo<CL_PLATFORM_NAME>()<<"\n";
-	std::cout<<"\n";
+	printErr("CLcntxt::init()","Using OpenCL platform " + CLcntxt::def_platform.getInfo<CL_PLATFORM_NAME>());
 
 	std::vector<cl::Device> devices;
 	if(def_platform.getDevices(CL_DEVICE_TYPE_ALL,&devices)!=CL_SUCCESS){
-		std::cout<<"CLcntxt::init(): No OpenCL devices!\n";
+		printErr("CLcntxt::init()","No OpenCL devices!");
 		return 1;
 	}
 
-	std::cout<<"CLcntxt::init(): OpenCL Devices found:\n";
+	printErr("CLcntxt::init()","OpenCL Devices found:");
 	for(std::vector<cl::Device>::iterator it = devices.begin(); it !=devices.end(); it++){
 		std::cout<<it->getInfo<CL_DEVICE_NAME>()<<"\n";
 	}
-	std::cout<<"\n";
 
 	CLcntxt::def_device=devices[0];
-	std::cout<<"CLcntxt::init(): Using OpenCL device "<<CLcntxt::def_device.getInfo<CL_DEVICE_NAME>()<<"\n";
-    std::cout<<"\n";
+	printErr("CLcntxt::init()","Using OpenCL device " + CLcntxt::def_device.getInfo<CL_DEVICE_NAME>());
 
 	return 0;
 }
