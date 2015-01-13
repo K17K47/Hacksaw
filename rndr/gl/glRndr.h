@@ -8,9 +8,10 @@
 #ifndef GLRNDR_H_
 #define GLRNDR_H_
 
+#include <mathHelper.h>
 #include <string>
-#include<GL/glew.h>
-#include<GLFW/glfw3.h>
+#include <rndr/scene.h>
+#include <GLFW/glfw3.h>
 
 namespace Rndr {
 
@@ -22,8 +23,19 @@ namespace Rndr {
 			std::string title="Hacksaw 0.01-indev";
 			bool fullscreen=false;
 			GLFWwindow* window;
+			Matrix44 projection;
+			Scene* cena;
+			GLuint shaderID;
+			GLuint textID;
+			GLuint mvpID;
 		public:
 			int glInit();
+			void render();
+			void loadShaders(const char* vertexShader, const char* fragmentShader);
+			void chgScene(Scene* scene);
+			void chgWindowTitle(const std::string windowTitle);
+			bool mayWindowClose();
+			void terminate();
 		private:
 			static void glfwErrCB(int error, const char* errMsg);
 	};
