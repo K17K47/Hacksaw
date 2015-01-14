@@ -25,6 +25,7 @@ typedef double real;
 
 typedef Eigen::Matrix<real, 2, 1> Vector2;
 typedef Eigen::Matrix<real, 3, 1> Vector3;
+typedef Eigen::Matrix<real, 4, 1> Vector4;
 typedef Eigen::Matrix<real, 3, 3> Matrix33;
 typedef Eigen::Matrix<real, 3, 4> Matrix34;
 typedef Eigen::Matrix<real, 4, 4> Matrix44;

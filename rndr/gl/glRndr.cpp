@@ -70,6 +70,7 @@ namespace Rndr {
 		glUseProgram(shaderID);
 
 		Matrix44 view=lookAt(cena->activeCamera->pos, Vector3(0.0,0.0,0.0),Vector3(0.0,1.0,0.0));//cena->activeCamera->pos
+		Matrix44 MVP=projection * view;
 
 		for(unsigned int i=0;i<cena->nObjects;++i){
 
@@ -77,7 +78,14 @@ namespace Rndr {
 			glBindTexture(GL_TEXTURE_2D, cena->objects[i]->model->texID);
 			glUniform1i(textID, 0);
 
-			Matrix44 MVP=projection * view;
+			Matrix44 model=cena->objects[i]->rot->matrix();
+
+			Matrix44 tmp=Matrix44::Identity();
+
+//			tmp.block<3,1>(3,0)=Vector3(cena->objects[i]->pos);
+
+			MVP*=model;
+
 			glUniformMatrix4dv(mvpID, 1, GL_FALSE, MVP.data());
 
 			glBindVertexArray(cena->objects[i]->model->VAO);
