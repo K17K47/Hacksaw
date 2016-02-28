@@ -10,7 +10,7 @@
 
 #include "mathHelper.h"
 
-namespace phys{
+namespace Phys{
 	class Particle{
 		protected:
 			Vector3 pos=Vector3::Zero(); 		//Posição

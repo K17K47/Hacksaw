@@ -30,6 +30,7 @@ typedef Eigen::Matrix<real, 3, 3> Matrix33;
 typedef Eigen::Matrix<real, 3, 4> Matrix34;
 typedef Eigen::Matrix<real, 4, 4> Matrix44;
 typedef Eigen::Quaternion<real> Quaternion;
+typedef Eigen::AngleAxis<real> AngleAxis;
 typedef Eigen::Translation3d Translation3d;
 
 static inline real degToRad(real degrees){return (degrees*M_PI)/180;}

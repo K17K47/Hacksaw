@@ -10,46 +10,31 @@
 #include <GL/glew.h>
 #include <GL/glext.h>
 #include <rndr/gl/glRndr.h>
-#include <hserr.h>
+#include "hserr.h"
+#include "GLFW.h"
 #include <iostream>
 #include <fstream>
 
 namespace Rndr {
 	int glRndr::glInit(){
-		printErr("glRndr::glInit()","GLFW Init");
-		if(!glfwInit()){
-			printErr("glRndr::glInit()","GLFW Init failed!");
-			return -1;
-		}
+		sWindow windowDesc;
+		windowDesc.FxAA=4;
+		windowDesc.width=640;
+		windowDesc.height=480;
 
-		glfwSetErrorCallback(glfwErrCB); //funcao callback p/ erros
+		windowIndex=GLFW::instance()->newWindow(windowDesc);
 
-		glfwWindowHint(GLFW_SAMPLES, FxAA); //AntiAliasing
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-		//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		GLFW::instance()->chgCurrentWindow(windowIndex);
 
-		window=glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-		printErr("glRndr::glInit()","Creating window...");
-		if(!window){
-			glfwTerminate();
-			printErr("glRndr::glInit()","GLFW failed to create window");
-			return -1;
-		}
+		Logger::instance()->printErr("glRndr::glInit()","Video cards OpenGL implementation found:");
+		Logger::instance()->printErr("glRndr::glInit()","Vendor: " + std::string(reinterpret_cast<const char*>(glGetString(GL_VENDOR))));
+		Logger::instance()->printErr("glRndr::glInit()","Renderer: " + std::string(reinterpret_cast<const char*>(glGetString(GL_RENDERER))));
+		Logger::instance()->printErr("glRndr::glInit()","Version: " + std::string(reinterpret_cast<const char*>(glGetString(GL_VERSION))));
 
-		glfwMakeContextCurrent(window);
-		//glfwSetWindowCloseCallback(window, glfwKillCB);
-
-		printErr("glRndr::glInit()","Video cards OpenGL implementation found:");
-		printErr("glRndr::glInit()","Vendor: " + std::string(reinterpret_cast<const char*>(glGetString(GL_VENDOR))));
-		printErr("glRndr::glInit()","Renderer: " + std::string(reinterpret_cast<const char*>(glGetString(GL_RENDERER))));
-		printErr("glRndr::glInit()","Version: " + std::string(reinterpret_cast<const char*>(glGetString(GL_VERSION))));
-
-		printErr("glRndr::glInit()","GLEW Init");
+		Logger::instance()->printErr("glRndr::glInit()","GLEW Init");
 		glewExperimental = GL_TRUE;
 		if(glewInit() != GLEW_OK){
-			printErr("glRndr::glInit()","GLEW Init failed!");
+			Logger::instance()->printErr("glRndr::glInit()","GLEW Init failed!");
 			return -1;
 		}
 
@@ -78,13 +63,17 @@ namespace Rndr {
 			glBindTexture(GL_TEXTURE_2D, cena->objects[i]->model->texID);
 			glUniform1i(textID, 0);
 
-			Matrix44 model=cena->objects[i]->rot->matrix();
+			Matrix44 rotation(Matrix44::Identity());
+			Matrix44 translation(rotation);
+			Matrix44 scale(rotation);
 
-			Matrix44 tmp=Matrix44::Identity();
+			rotation.block<3,3>(0,0)=cena->objects[i]->rot->matrix();
 
-//			tmp.block<3,1>(3,0)=Vector3(cena->objects[i]->pos);
+			translation(0,3)=cena->objects[i]->pos->x();
+			translation(1,3)=cena->objects[i]->pos->y();
+			translation(2,3)=cena->objects[i]->pos->z();
 
-			MVP*=model;
+			MVP*=(rotation*translation);
 
 			glUniformMatrix4dv(mvpID, 1, GL_FALSE, MVP.data());
 
@@ -92,24 +81,9 @@ namespace Rndr {
 
 			glDrawElements(GL_TRIANGLES, cena->objects[i]->model->nTriangles*3, GL_UNSIGNED_INT, 0);
 		}
-		glfwSwapBuffers(window);
+		GLFW::instance()->swapBuffers(windowIndex);
 		glfwPollEvents();
 	}
-
-	void glRndr::chgWindowTitle(const std::string windowTitle){
-		glfwSetWindowTitle(window, (title+" "+windowTitle).c_str());
-	}
-
-	void glRndr::terminate(){
-		glfwDestroyWindow(window);
-		glfwTerminate();
-	}
-
-	void glRndr::glfwErrCB(int error, const char* errMsg){
-		printErr("glRndr::glfwErrCB()",errMsg);
-	}
-
-	bool glRndr::mayWindowClose(){ return glfwWindowShouldClose(window); }
 
 	void glRndr::chgScene(Scene* scene){ cena=scene;}
 
@@ -144,7 +118,7 @@ namespace Rndr {
 	    int InfoLogLength;
 
 	    // Compile Vertex Shader
-	    printErr("glRndr::loadShaders()","Compiling shader:" + std::string(vertexShader));
+	    Logger::instance()->printErr("glRndr::loadShaders()","Compiling shader:" + std::string(vertexShader));
 	    char const * VertexSourcePointer = VertexShaderCode.c_str();
 	    glShaderSource(VertexShaderID, 1, &VertexSourcePointer , NULL);
 	    glCompileShader(VertexShaderID);
@@ -157,7 +131,7 @@ namespace Rndr {
 	    //printErr("glRndr::loadShaders",std::string(&VertexShaderErrorMessage[0]));
 
 	    // Compile Fragment Shader
-	    printErr("glRndr::loadShaders()","Compiling shader:"+std::string(fragmentShader));
+	    Logger::instance()->printErr("glRndr::loadShaders()","Compiling shader:"+std::string(fragmentShader));
 	    char const * FragmentSourcePointer = FragmentShaderCode.c_str();
 	    glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer , NULL);
 	    glCompileShader(FragmentShaderID);
@@ -170,7 +144,7 @@ namespace Rndr {
 	   // printErr("glRndr::loadShaders", std::string(&FragmentShaderErrorMessage[0]));
 
 	    // Link the program
-	    printErr("glRndr::loadShaders()","Linking program");
+	    Logger::instance()->printErr("glRndr::loadShaders()","Linking program");
 	    GLuint ProgramID = glCreateProgram();
 	    glAttachShader(ProgramID, VertexShaderID);
 	    glAttachShader(ProgramID, FragmentShaderID);
@@ -181,7 +155,7 @@ namespace Rndr {
 	    glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
 	    std::vector<char> ProgramErrorMessage( std::max(InfoLogLength, int(1)) );
 	    glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-	    printErr("glRndr::loadShaders()", std::string(&ProgramErrorMessage[0]));
+	    Logger::instance()->printErr("glRndr::loadShaders()", std::string(&ProgramErrorMessage[0]));
 
 	    glDeleteShader(VertexShaderID);
 	    glDeleteShader(FragmentShaderID);

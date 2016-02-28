@@ -7,8 +7,8 @@
 
 
 #include "pForceGen.h"
-namespace phys{
-	void pFGenReg::add(Particle * pOne, pForceGen * fg, Particle * pTwo){
+namespace Phys{
+	void pFGenReg::add(pForceGen *fg, unsigned int pOne, unsigned int pTwo){
 		pFGenReg::pFGRegister registration;
 		registration.pOne = pOne;
 		registration.fg = fg;
@@ -20,31 +20,31 @@ namespace phys{
 		registry.clear();
 	}
 
-	void pFGenReg::updateForces(real dt){
+	void pFGenReg::updateForces(real dt, pWorld *pointer){
 		for (pFGRegistry::iterator it = registry.begin(); it != registry.end(); it++){
-			it->fg->updateForce(it->pOne, dt, it->pTwo);
+			it->fg->updateForce(pointer, dt, it->pOne, it->pTwo);
 		}
 	}
 
-	void pGrav::updateForce(Particle * pOne, real dt, Particle * pTwo){
-		if(!pOne->hasFiniteMass()) return;
-		pOne->addForce(grav * pOne->getMass());
+	void pGrav::updateForce(pWorld *pointer, real dt, unsigned int pOne, unsigned int pTwo){
+		if(!pointer->hasFiniteMass(pOne)) return;
+		pointer->addForce(pOne, grav * pointer->getMass(pOne));
 	}
 
-	void pDrag::updateForce(Particle * pOne, real dt, Particle * pTwo){
+	void pDrag::updateForce(pWorld *pointer, real dt, unsigned int pOne, unsigned int pTwo){
 		Vector3 force;
-		pOne->getVel(&force);
+		pointer->getVel(pOne, &force);
 		real dragK = force.norm();
 		dragK=k1*dragK+k2*dragK*dragK;
 		force.normalize();
 		force*=-dragK;
-		pOne->addForce(force);
+		pointer->addForce(pOne, force);
 	}
 
-	void pSpring::updateForce(Particle * pOne, real dt, Particle * pTwo){
+	void pSpring::updateForce(pWorld *pointer, real dt, unsigned int pOne, unsigned int pTwo){
 		Vector3 force;
-		pOne->getPos(&force);
-		force-=pTwo->getPos();
+		pointer->getPos(pOne, &force);
+		force-=pointer->getPos(pTwo);
 
 		real mag = force.norm();
 		mag=real_abs(mag-restLen);
@@ -52,12 +52,12 @@ namespace phys{
 
 		force.normalize();
 		force*=-mag;
-		pOne->addForce(force);
+		pointer->addForce(pOne, force);
 	}
 
-	void pAnchoredSpring::updateForce(Particle * pOne, real dt, Particle * pTwo){
+	void pAnchoredSpring::updateForce(pWorld *pointer, real dt, unsigned int pOne, unsigned int pTwo){
 		Vector3 force;
-		pOne->getPos(&force);
+		pointer->getPos(pOne, &force);
 		force-= *anchor;
 
 		real mag=force.norm();
@@ -66,11 +66,11 @@ namespace phys{
 
 		force.normalize();
 		force*=mag;
-		pOne->addForce(force);
+		pointer->addForce(pOne, force);
 	}
 
-	void pBuoyancy::updateForce(Particle * pOne, real dt, Particle * pTwo){
-		real depth=pOne->getPos()[2];
+	void pBuoyancy::updateForce(pWorld *pointer, real dt, unsigned int pOne, unsigned int pTwo){
+		real depth=pointer->getPos(pOne)[2];
 
 		if(depth >= liquidHeight + maxDepth) return;
 
@@ -78,36 +78,36 @@ namespace phys{
 
 		if(depth <= liquidHeight - maxDepth){
 			force[2]=liquidDensity * volume;
-			pOne->addForce(force);
+			pointer->addForce(pOne, force);
 			return;
 		}
 
 		force[2]=liquidDensity * volume *(depth - maxDepth - liquidHeight)/2 * maxDepth;
-		pOne->addForce(force);
+		pointer->addForce(pOne, force);
 	}
 
-	void pAnchoredFakeSpring::updateForce(Particle * pOne, real dt, Particle * pTwo){
-		if(pOne->hasFiniteMass()) return;
+	void pAnchoredFakeSpring::updateForce(pWorld *pointer, real dt, unsigned int pOne, unsigned int pTwo){
+		if(pointer->hasFiniteMass(pOne)) return;
 
 		Vector3 pos;
-		pOne->getPos(&pos);
+		pointer->getPos(pOne, &pos);
 		pos-= *anchor;
 
 		real gamma=0.5 * real_sqrt(4*k-damping*damping);
 		if(gamma==0) return;
 
-		Vector3 c=pos*(damping/(2.0*gamma))+pOne->getVel()*(1.0/gamma);
+		Vector3 c=pos*(damping/(2.0*gamma))+pointer->getVel(pOne)*(1.0/gamma);
 
 		Vector3 target=pos*real_cos(gamma*dt)+c*real_sin(gamma*dt);
 		target*=real_exp(-0.5*dt*damping);
 
-		Vector3 accel=(target-pos)*(1.0/dt*dt)-pOne->getVel()*dt;
-		pOne->addForce(accel*pOne->getMass());
+		Vector3 accel=(target-pos)*(1.0/dt*dt)-pointer->getVel(pOne)*dt;
+		pointer->addForce(pOne, accel*pointer->getMass(pOne));
 	}
 
-	void pLinearMotor::updateForce(Particle * pOne, real dt, Particle * pTwo){
-		if((maxVel==0) || (maxVel<pOne->getVel().norm())){
-			pOne->addForce(dir->normalized()*force);
+	void pLinearMotor::updateForce(pWorld *pointer, real dt, unsigned int pOne, unsigned int pTwo){
+		if((maxVel==0) || (maxVel<pointer->getVel(pOne).norm())){
+			pointer->addForce(pOne ,dir->normalized()*force);
 		}
 	}
 };

@@ -8,12 +8,14 @@
 #ifndef PCONTACTS_H_
 #define PCONTACTS_H_
 
-#include "particle.h"
+#include "pWorld.h"
 
-namespace phys{
+namespace Phys{
+	class pWorld;
 	class pContact {
 		public:
-			Particle* particle[2];
+			pWorld* world;
+			unsigned int particle[2];
 			real restituicao;
 			Vector3 normContact;
 			real penetracao;
@@ -27,16 +29,16 @@ namespace phys{
 
 	class pCResolver{
 		protected:
-			unsigned iterations;
-			unsigned iterationsUsed;
+			unsigned iterations=8;
+			unsigned iterationsUsed=0;
 		public:
-			pCResolver(unsigned iterations): iterations(iterations), iterationsUsed(0) {}
 			void setIterations(unsigned iterations);
 			void resolveContacts(pContact *contactArray, unsigned nContacts, real dt);
 	};
 
 	class pContactGen{
 		public:
+			pWorld* world;
 			virtual unsigned addContact(pContact *contact, unsigned limit) const=0;
 	};
 };

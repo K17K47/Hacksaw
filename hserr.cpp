@@ -5,17 +5,19 @@
  *      Author: K17K47
  */
 
+#include<stddef.h>
 #include<iostream>
-#include<string>
-#include<GLFW/glfw3.h>
+//#include<GLFW/glfw3.h>
 #include"hserr.h"
 
-void printErr(std::string funcID,std::string msg){
-	double t=glfwGetTime();
-	if(t==0){
-		std::cout<<funcID<<": "<<msg<<"\n";
-		return;
-	}
-	std::cout<<"["<<t<<"] "<<funcID<<": "<<msg<<"\n";
+Logger* Logger::_instance = NULL;
+void Logger::printErr(std::string funcID,std::string msg){
+	std::chrono::duration<double> t=std::chrono::steady_clock::now()-start;
+	std::cout<<"["<<t.count()<<"] "<<funcID<<": "<<msg<<"\n";
+}
+
+Logger* Logger::instance(){
+	if(!_instance)_instance= new Logger;
+	return _instance;
 }
 

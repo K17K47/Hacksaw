@@ -7,7 +7,7 @@
 
 #include "pContacts.h"
 
-namespace phys{
+namespace Phys{
 	void pContact::resolve(real dt){
 		resolveVelocity(dt);
 		resolveInterpenetration(dt);
@@ -19,8 +19,8 @@ namespace phys{
 
 		real newSepVel = -sepVel * restituicao;
 
-		Vector3 accCausedVel = particle[0]->getAcc();
-		if(particle[1]) accCausedVel-=particle[1]->getAcc();
+		Vector3 accCausedVel = world->getAcc(particle[0]);
+		if(particle[1]) accCausedVel-=world->getAcc(particle[1]);
 
 		real accCausedSepVel=normContact.dot(accCausedVel)*dt;
 		if(accCausedSepVel<0){
@@ -29,42 +29,42 @@ namespace phys{
 		}
 
 		real deltaV = newSepVel - sepVel;
-		real totalInvMass=particle[0]->getInvMass();
-		if(particle[1]) totalInvMass+=particle[1]->getInvMass();
+		real totalInvMass=world->getInvMass(particle[0]);
+		if(particle[1]) totalInvMass+=world->getInvMass(particle[1]);
 		if(totalInvMass <= 0) return;
 
 		real impulse=deltaV/totalInvMass;
 		Vector3 impPerInvMass = normContact*impulse;
-		particle[0]->setVel(particle[0]->getVel()+impPerInvMass*particle[0]->getInvMass());
+		world->setVel(particle[0], world->getVel(particle[0])+impPerInvMass*world->getInvMass(particle[0]));
 		if(particle[1])
-			particle[1]->setVel(particle[1]->getVel()+impPerInvMass* -particle[1]->getInvMass());
+			world->setVel(particle[1], world->getVel(particle[1])+impPerInvMass* -world->getInvMass(particle[1]));
 	}
 
 	real pContact::calculateSeparatingVelocity() const{
-		Vector3 velRelativa = particle[0]->getVel();
-		if(particle[1]) velRelativa -= particle[1]->getVel();
+		Vector3 velRelativa = world->getVel(particle[0]);
+		if(particle[1]) velRelativa -= world->getVel(particle[1]);
 		return normContact.dot(velRelativa);
 	}
 
 	void pContact::resolveInterpenetration(real dt){
 		if(penetracao<=0) return;
 
-		real totalInvMass=particle[0]->getInvMass();
-		if(particle[1]) totalInvMass+=particle[1]->getInvMass();
+		real totalInvMass=world->getInvMass(particle[0]);
+		if(particle[1]) totalInvMass+=world->getInvMass(particle[1]);
 		if(totalInvMass<=0) return;
 
 		Vector3 movePerInvMass = normContact*(penetracao/totalInvMass);
 		Vector3 movParticle[2];
-		movParticle[0]=movePerInvMass*particle[0]->getInvMass();
+		movParticle[0]=movePerInvMass*world->getInvMass(particle[0]);
 		if(particle[1]){
-			movParticle[1]=movePerInvMass* -particle[1]->getInvMass();
+			movParticle[1]=movePerInvMass* -world->getInvMass(particle[1]);
 		}else{
 			movParticle[1].setZero();
 		}
 
-		particle[0]->setPos(particle[0]->getPos()+movParticle[0]);
+		world->setPos(particle[0], world->getPos(particle[0])+movParticle[0]);
 		if(particle[1])
-			particle[1]->setPos(particle[1]->getPos()+movParticle[1]);
+			world->setPos(particle[1], world->getPos(particle[1])+movParticle[1]);
 	}
 
 	void pCResolver::resolveContacts(pContact *contactArray, unsigned nContacts, real dt){

@@ -6,7 +6,7 @@
  */
 
 #include "particle.h"
-namespace phys{
+namespace Phys{
 	void Particle::addForce(const Vector3 &force){forceB +=force;}
 	void Particle::setPos(const Vector3 &p){pos=p;}
 	void Particle::setVel(const Vector3 &v){vel=v;}

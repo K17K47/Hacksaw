@@ -7,9 +7,9 @@
 
 #include "pLink.h"
 
-namespace phys {
+namespace Phys {
 	real pLink::currentLength() const{
-		Vector3 relativePos=particle[0]->getPos()-particle[1]->getPos();
+		Vector3 relativePos=world->getPos(particle[0])-world->getPos(particle[1]);
 		return relativePos.norm();
 	}
 
@@ -20,7 +20,7 @@ namespace phys {
 		contact->particle[0]=particle[0];
 		contact->particle[1]=particle[1];
 
-		Vector3 normal=particle[1]->getPos()-particle[0]->getPos();
+		Vector3 normal=world->getPos(particle[1])-world->getPos(particle[0]);
 		normal.normalize();
 
 		contact->normContact=normal;
@@ -37,7 +37,7 @@ namespace phys {
 		contact->particle[0]=particle[0];
 		contact->particle[1]=particle[1];
 
-		Vector3 normal=particle[1]->getPos()-particle[0]->getPos();
+		Vector3 normal=world->getPos(particle[1])-world->getPos(particle[0]);
 		normal.normalize();
 
 		if(currentLen>length){

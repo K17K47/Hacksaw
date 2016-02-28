@@ -10,11 +10,12 @@
 
 #include "pContacts.h"
 
-namespace phys {
+namespace Phys {
 
 	class pLink : public pContactGen{
 		public:
-			Particle* particle[2];
+			pWorld* world;
+			unsigned int particle[2];
 		protected:
 			real currentLength() const;
 		public:
@@ -23,6 +24,7 @@ namespace phys {
 
 	class pCable : public pLink{
 		public:
+			pWorld* world;
 			real maxLength;
 			real restituicao;
 			virtual unsigned addContact(pContact *contact, unsigned limit) const;
@@ -30,6 +32,7 @@ namespace phys {
 
 	class pRod : public pLink{
 		public:
+			pWorld* world;
 			real length;
 			virtual unsigned addContact(pContact *contact, unsigned limit) const;
 	};
